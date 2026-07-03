@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-groww-bg text-groww-text font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-groww-dark;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-groww-border rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-groww-muted;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-groww-green text-groww-dark font-semibold px-6 py-2.5 rounded-lg
+           hover:bg-groww-green-dark transition-colors duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply border border-groww-green text-groww-green font-semibold px-6 py-2.5 rounded-lg
+           hover:bg-groww-green/10 transition-colors duration-200;
+  }
+
+  .btn-danger {
+    @apply bg-groww-red text-white font-semibold px-6 py-2.5 rounded-lg
+           hover:bg-red-700 transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-groww-card border border-groww-border rounded-xl p-6 shadow-sm
+           transition-colors duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-groww-surface border border-groww-border rounded-lg px-4 py-3
+           text-groww-text placeholder-groww-muted focus:outline-none focus:border-groww-green
+           transition-colors duration-200 text-sm shadow-sm;
+  }
+
+  .badge-green {
+    @apply inline-flex items-center gap-1 bg-groww-green/10 text-groww-green
+           text-xs font-medium px-2 py-0.5 rounded-full;
+  }
+
+  .badge-red {
+    @apply inline-flex items-center gap-1 bg-groww-red/10 text-groww-red
+           text-xs font-medium px-2 py-0.5 rounded-full;
+  }
+
+  .section-title {
+    @apply text-xl font-bold text-groww-text mb-4;
+  }
+
+  .tab-active {
+    @apply border-b-2 border-groww-green text-groww-green font-semibold;
+  }
+
+  .tab-inactive {
+    @apply text-groww-muted hover:text-groww-text transition-colors duration-150;
+  }
+}
+
+@layer utilities {
+  .text-gain {
+    @apply text-groww-green;
+  }
+  .text-loss {
+    @apply text-groww-red;
+  }
+  .glass {
+    backdrop-filter: blur(20px);
+    background: rgba(18, 18, 18, 0.75);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}

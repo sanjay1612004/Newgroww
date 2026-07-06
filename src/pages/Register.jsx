@@ -19,7 +19,7 @@ export default function Register() {
     try {
       await register(form);
       const loginRes = await login({ email: form.email, password: form.password });
-      const { accessToken, refreshToken } = loginRes.data;
+      const { accessToken, refreshToken } = loginRes.data.data || loginRes.data;
       loginWithTokens(accessToken, refreshToken, { name: form.name, email: form.email });
       navigate('/');
     } catch (err) {

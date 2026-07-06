@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getHoldings, getHistory, getSummary, getAnalytics, addMoney } from '../api/portfolioApi';
 import PortfolioAnalyticsChart from '../components/PortfolioAnalyticsChart';
 import BuySellModal from '../components/BuySellModal';
 import { FiBriefcase, FiTrendingUp, FiTrendingDown, FiPlus, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { subscribePrices } from '../api/socket';
 
 const tabs = ['Overview', 'Holdings', 'History'];
 
@@ -36,26 +37,65 @@ export default function Portfolio() {
     setLoading(true);
     Promise.allSettled([getSummary(), getAnalytics(), getHoldings(), getHistory()])
       .then(([s, a, h, hi]) => {
-        if (s.status === 'fulfilled') setSummary(s.value.data);
-        if (a.status === 'fulfilled') setAnalytics(a.value.data);
+        if (s.status === 'fulfilled') setSummary(s.value.data?.data);
+        if (a.status === 'fulfilled') setAnalytics(a.value.data?.data);
         if (h.status === 'fulfilled') {
-          const d = h.value.data;
-          // Backend returns { success, holdings: [...] }
-          setHoldings(d?.holdings || (Array.isArray(d) ? d : []));
+          const d = h.value.data?.data;
+          setHoldings(Array.isArray(d) ? d : []);
         }
         if (hi.status === 'fulfilled') {
-          const d = hi.value.data;
-          // Backend returns { success, history: [...] }
-          setHistory(d?.history || (Array.isArray(d) ? d : []));
+          const d = hi.value.data?.data;
+          setHistory(Array.isArray(d) ? d : []);
         }
       })
       .finally(() => setLoading(false));
   };
 
+  const unsubRef = useRef(null);
+
   useEffect(() => {
     if (!isLoggedIn) { navigate('/login'); return; }
     reload();
   }, [isLoggedIn]);
+
+  // Subscribe to live prices for holdings
+  useEffect(() => {
+    if (unsubRef.current) {
+      unsubRef.current();
+      unsubRef.current = null;
+    }
+
+    const allHoldings = analytics?.holdings || holdings;
+    const symbols = allHoldings
+      .map((h) => h.symbol)
+      .filter(Boolean);
+
+    if (symbols.length === 0) return;
+
+    const handlePriceUpdate = ({ symbol, price }) => {
+      setHoldings((prev) =>
+        prev.map((h) =>
+          h.symbol === symbol
+            ? {
+                ...h,
+                currentPrice: price,
+                pnl: (price - (h.avgPrice || 0)) * (h.quantity || 0),
+                returnPercent: h.avgPrice ? (((price - h.avgPrice) / h.avgPrice) * 100) : 0,
+              }
+            : h
+        )
+      );
+    };
+
+    unsubRef.current = subscribePrices(symbols, handlePriceUpdate);
+
+    return () => {
+      if (unsubRef.current) {
+        unsubRef.current();
+        unsubRef.current = null;
+      }
+    };
+  }, [holdings.length, analytics]);
 
   const handleAddMoney = async (e) => {
     e.preventDefault();

@@ -9,7 +9,8 @@ export default function BuySellModal({ stock, onClose, onSuccess }) {
   const [error, setError] = useState('');
 
   const ltp = stock?.ltp || stock?.stats?.ltp || 0;
-  const total = (ltp * quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const isPriceAvailable = ltp > 0;
+  const total = isPriceAvailable ? (ltp * quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
 
   const handleSubmit = async () => {
     if (!quantity || quantity < 1) { setError('Enter a valid quantity'); return; }
@@ -72,11 +73,15 @@ export default function BuySellModal({ stock, onClose, onSuccess }) {
           <div className="flex items-center justify-between bg-groww-surface rounded-xl p-4">
             <div>
               <p className="text-xs text-groww-muted">Market Price</p>
-              <p className="text-2xl font-bold text-groww-text mt-0.5">
-                ₹{Number(ltp).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </p>
+              {isPriceAvailable ? (
+                <p className="text-2xl font-bold text-groww-text mt-0.5">
+                  ₹{Number(ltp).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
+              ) : (
+                <p className="text-lg font-bold text-groww-red mt-0.5">Price Unavailable</p>
+              )}
             </div>
-            <span className="text-xs bg-groww-green/10 text-groww-green px-2 py-1 rounded-full font-medium">LIVE</span>
+            {isPriceAvailable && <span className="text-xs bg-groww-green/10 text-groww-green px-2 py-1 rounded-full font-medium">LIVE</span>}
           </div>
 
           {/* Quantity */}
@@ -108,13 +113,13 @@ export default function BuySellModal({ stock, onClose, onSuccess }) {
           )}
 
           {/* Submit */}
-          <button onClick={handleSubmit} disabled={loading}
+          <button onClick={handleSubmit} disabled={loading || !isPriceAvailable}
             className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 active:scale-95 disabled:opacity-60 ${
               mode === 'BUY'
                 ? 'bg-groww-green text-groww-dark hover:bg-groww-green-dark'
                 : 'bg-groww-red text-white hover:bg-red-700'
             }`}>
-            {loading ? 'Processing…' : `${mode} ${quantity} Share${quantity !== 1 ? 's' : ''} · ₹${total}`}
+            {loading ? 'Processing…' : !isPriceAvailable ? 'Trading Disabled' : `${mode} ${quantity} Share${quantity !== 1 ? 's' : ''} · ₹${total}`}
           </button>
         </div>
       </div>

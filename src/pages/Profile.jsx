@@ -40,7 +40,7 @@ export default function Profile() {
   useEffect(() => {
     if (!isLoggedIn) { navigate('/login'); return; }
     getKycStatus()
-      .then((res) => setKyc(res.data))
+      .then((res) => setKyc(res.data?.data))
       .catch(() => setKyc(null))
       .finally(() => setKycLoading(false));
   }, [isLoggedIn]);
@@ -55,10 +55,11 @@ export default function Profile() {
       setSuccess(res.data?.message || 'KYC submitted successfully!');
       setKyc({ status: 'pending' });
     } catch (err) {
-      if (Array.isArray(err.response?.data?.message)) {
-        setError(err.response.data.message[0].message || 'Validation failed');
+      const respData = err.response?.data;
+      if (respData?.errors && Array.isArray(respData.errors) && respData.errors.length > 0) {
+        setError(respData.errors[0].message || 'Validation failed');
       } else {
-        setError(err.response?.data?.message || 'KYC submission failed.');
+        setError(respData?.message || 'KYC submission failed.');
       }
     } finally {
       setSubmitting(false);

@@ -120,10 +120,12 @@ export default function StockChart({ data = [], symbol, onRangeChange }) {
       theme: 'dark',
       style: { fontSize: '12px' },
       custom: ({ seriesIndex, dataPointIndex, w }) => {
-        const o = w.globals.seriesCandleO[seriesIndex]?.[dataPointIndex];
-        const h = w.globals.seriesCandleH[seriesIndex]?.[dataPointIndex];
-        const l = w.globals.seriesCandleL[seriesIndex]?.[dataPointIndex];
-        const c = w.globals.seriesCandleC[seriesIndex]?.[dataPointIndex];
+        const dataPoint = w.config.series[seriesIndex].data[dataPointIndex];
+        const o = dataPoint?.y?.[0];
+        const h = dataPoint?.y?.[1];
+        const l = dataPoint?.y?.[2];
+        const c = dataPoint?.y?.[3];
+        
         return `
           <div style="background:#161b27;border:1px solid #242b3d;border-radius:8px;padding:10px;font-size:12px;">
             <div style="color:#8a9bb0;margin-bottom:4px;">OHLC</div>
@@ -174,7 +176,20 @@ export default function StockChart({ data = [], symbol, onRangeChange }) {
     },
     tooltip: {
       theme: 'dark',
-      x: { format: 'dd MMM yyyy HH:mm' },
+      x: {
+        formatter: (val) => {
+          const d = new Date(val);
+          return d.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+      },
       y: { formatter: (v) => `₹${Number(v).toFixed(2)}` },
     },
     colors: ['#00d09c'],
@@ -223,7 +238,7 @@ export default function StockChart({ data = [], symbol, onRangeChange }) {
       </div>
 
       {series.length > 0 && series[0].data?.length > 0 ? (
-        <ReactApexChart options={options} series={series} type={type} height={350} />
+        <ReactApexChart key={`chart-${chartType}`} options={options} series={series} type={type} height={350} />
       ) : (
         <div className="flex items-center justify-center h-64 text-groww-muted text-sm">
           <FiBarChart2 className="mr-2" /> No data for this range

@@ -18,7 +18,7 @@ export default function Login() {
     setError('');
     try {
       const res = await login(form);
-      const { accessToken, refreshToken } = res.data;
+      const { accessToken, refreshToken } = res.data.data || res.data;
       loginWithTokens(accessToken, refreshToken, { email: form.email });
       navigate('/');
     } catch (err) {

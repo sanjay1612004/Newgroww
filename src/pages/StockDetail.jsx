@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getStockDetails, getChart } from '../api/marketApi';
 import { addToWatchlist } from '../api/watchlistApi';
+import { getKycStatus } from '../api/kycApi';
 import { useAuth } from '../context/AuthContext';
 import StockChart from '../components/CandlestickChart';
 import BuySellModal from '../components/BuySellModal';
@@ -32,6 +33,7 @@ export default function StockDetail() {
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [addingWatch, setAddingWatch] = useState(false);
+  const [checkingKyc, setCheckingKyc] = useState(false);
   const [toast, setToast] = useState('');
 
   // Fetch stock details
@@ -84,6 +86,31 @@ export default function StockDetail() {
     } finally {
       setAddingWatch(false);
       setTimeout(() => setToast(''), 3000);
+    }
+  };
+
+  const handleBuySellClick = async () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    setCheckingKyc(true);
+    try {
+      const res = await getKycStatus();
+      if (res.data?.data?.status === 'approved') {
+        setShowModal(true);
+      } else {
+        setToast('Please complete your KYC to start trading.');
+        setTimeout(() => {
+          setToast('');
+          navigate('/profile');
+        }, 1500);
+      }
+    } catch (e) {
+      setToast('Failed to verify KYC status.');
+      setTimeout(() => setToast(''), 3000);
+    } finally {
+      setCheckingKyc(false);
     }
   };
 
@@ -140,8 +167,8 @@ export default function StockDetail() {
             <button onClick={handleAddWatchlist} disabled={addingWatch} className="btn-outline text-sm py-2 px-4 flex items-center gap-2">
               <FiBookmark size={14} /> {addingWatch ? '…' : 'Watchlist'}
             </button>
-            <button onClick={() => isLoggedIn ? setShowModal(true) : navigate('/login')} className="btn-primary text-sm py-2 px-6">
-              Buy / Sell
+            <button onClick={handleBuySellClick} disabled={checkingKyc} className="btn-primary text-sm py-2 px-6">
+              {checkingKyc ? 'Checking KYC…' : 'Buy / Sell'}
             </button>
           </div>
         </div>

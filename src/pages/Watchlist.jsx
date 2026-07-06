@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getWatchlist } from '../api/watchlistApi';
+import { subscribePrices } from '../api/socket';
 import { useAuth } from '../context/AuthContext';
 import WatchlistRow from '../components/WatchlistRow';
 import { FiBookmark, FiSearch } from 'react-icons/fi';
@@ -10,18 +11,52 @@ export default function Watchlist() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const unsubRef = useRef(null);
 
   useEffect(() => {
     if (!isLoggedIn) { navigate('/login'); return; }
     getWatchlist()
       .then((res) => {
-        const d = res.data;
-        // Backend returns { success, watchlist: [...] }
-        setItems(d?.watchlist || (Array.isArray(d) ? d : []));
+        const d = res.data?.data;
+        setItems(Array.isArray(d) ? d : []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [isLoggedIn]);
+
+  // Subscribe to live prices whenever items change
+  useEffect(() => {
+    // Clean up previous subscription
+    if (unsubRef.current) {
+      unsubRef.current();
+      unsubRef.current = null;
+    }
+
+    const symbols = items
+      .map((i) => i.symbol)
+      .filter(Boolean);
+
+    if (symbols.length === 0) return;
+
+    const handlePriceUpdate = ({ symbol, price }) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.symbol === symbol
+            ? { ...item, livePrice: price }
+            : item
+        )
+      );
+    };
+
+    unsubRef.current = subscribePrices(symbols, handlePriceUpdate);
+
+    return () => {
+      if (unsubRef.current) {
+        unsubRef.current();
+        unsubRef.current = null;
+      }
+    };
+  }, [items.length]); // re-subscribe when item count changes
 
   const handleRemove = (symbol) => {
     setItems((prev) => prev.filter((i) => i.symbol !== symbol));
@@ -62,7 +97,7 @@ export default function Watchlist() {
         ) : (
           <div className="divide-y divide-groww-border">
             {items.map((item, i) => (
-              <WatchlistRow key={i} item={item} onRemove={handleRemove} />
+              <WatchlistRow key={item.symbol || i} item={item} onRemove={handleRemove} />
             ))}
           </div>
         )}

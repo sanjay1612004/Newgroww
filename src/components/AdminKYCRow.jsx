@@ -37,14 +37,25 @@ export default function AdminKYCRow({ record, onUpdate }) {
             <FiUser className="text-groww-green" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-groww-text">{record.userId}</p>
+            <p className="text-sm font-semibold text-groww-text">{record.fullName || record.user?.name || record.userId}</p>
             <p className="text-xs text-groww-muted mt-0.5">
-              {record.documentType}: <span className="text-groww-text font-medium">{record.documentNumber}</span>
+              {record.user?.email || ''}
+            </p>
+            <p className="text-xs text-groww-muted mt-0.5">
+              PAN: <span className="text-groww-text font-medium">{record.panNumber || record.documentNumber || '—'}</span>
+              {record.aadhaarNumber && (
+                <> · Aadhaar: <span className="text-groww-text font-medium">{record.aadhaarNumber}</span></>
+              )}
             </p>
             <div className="flex items-center gap-1 text-xs text-groww-muted mt-1">
               <FiCalendar size={10} />
               {record.createdAt ? new Date(record.createdAt).toLocaleString('en-IN') : '—'}
             </div>
+            {record.status === 'rejected' && record.rejectionReason && (
+              <p className="text-xs text-groww-red mt-1.5">
+                Reason: {record.rejectionReason}
+              </p>
+            )}
           </div>
         </div>
 

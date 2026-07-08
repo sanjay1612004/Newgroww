@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { logout } from '../api/authApi';
 import { searchStocks } from '../api/marketApi';
-import { FiSearch, FiX, FiTrendingUp, FiBookmark, FiBriefcase, FiUser, FiLogOut, FiShield } from 'react-icons/fi';
+import { FiSearch, FiX, FiTrendingUp, FiBookmark, FiBriefcase, FiUser, FiLogOut, FiShield, FiSun, FiMoon } from 'react-icons/fi';
 
 function extractSearchResults(data) {
   let results = [];
@@ -24,7 +25,8 @@ function extractSearchResults(data) {
 }
 
 export default function Navbar() {
-  const { isLoggedIn, user, logoutUser } = useAuth();
+  const { isLoggedIn, isAdmin, user, logoutUser } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -157,8 +159,16 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Auth */}
+        {/* Actions & Auth */}
         <div className="ml-auto flex items-center gap-3">
+          <button 
+            onClick={toggleTheme} 
+            className="p-2 text-groww-muted hover:text-groww-text hover:bg-groww-surface rounded-full transition-colors flex items-center justify-center"
+            title="Toggle Theme"
+          >
+            {isDarkMode ? <FiSun size={18} /> : <FiMoon size={18} />}
+          </button>
+
           {!isLoggedIn ? (
             <>
               <Link to="/login" className="text-sm text-groww-muted hover:text-groww-text transition-colors font-medium px-3 py-2">Login</Link>
@@ -184,10 +194,12 @@ export default function Navbar() {
                     className="flex items-center gap-2.5 px-4 py-3 text-sm text-groww-muted hover:text-groww-text hover:bg-groww-surface transition-colors">
                     <FiUser /> Profile & KYC
                   </Link>
-                  <Link to="/admin" onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-2.5 px-4 py-3 text-sm text-groww-muted hover:text-groww-text hover:bg-groww-surface transition-colors">
-                    <FiShield /> Admin Panel
-                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-3 text-sm text-groww-muted hover:text-groww-text hover:bg-groww-surface transition-colors">
+                      <FiShield /> Admin Panel
+                    </Link>
+                  )}
                   <button onClick={handleLogout}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-groww-red hover:bg-groww-surface transition-colors border-t border-groww-border">
                     <FiLogOut /> Logout

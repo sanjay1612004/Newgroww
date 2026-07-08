@@ -55,9 +55,10 @@ export function AuthProvider({ children }) {
   };
 
   const isLoggedIn = !!token;
+  const isAdmin = user?.email === 'admin@gmail.com';
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoggedIn, loginUser, loginWithTokens, logoutUser }}>
+    <AuthContext.Provider value={{ user, token, isLoggedIn, isAdmin, loginUser, loginWithTokens, logoutUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -207,7 +207,7 @@ export default function Portfolio() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-groww-border">
-                    {['Stock', 'Qty', 'Avg Price', 'Current', 'P&L', ''].map((h) => (
+                    {['Stock', 'Qty', 'Avg Price', 'Invested', 'Current', 'P&L', ''].map((h) => (
                       <th key={h} className="text-left px-5 py-3 text-xs text-groww-muted font-medium">{h}</th>
                     ))}
                   </tr>
@@ -225,6 +225,7 @@ export default function Portfolio() {
                         </td>
                         <td className="px-5 py-4 text-groww-text">{h.quantity}</td>
                         <td className="px-5 py-4 text-groww-text">{fmt(h.avgPrice)}</td>
+                        <td className="px-5 py-4 text-groww-text">{fmt(h.quantity * (h.avgPrice || 0))}</td>
                         <td className="px-5 py-4 text-groww-text">{h.currentPrice ? fmt(h.currentPrice) : '—'}</td>
                         <td className={`px-5 py-4 font-semibold ${isGain ? 'text-groww-green' : 'text-groww-red'}`}>
                           {isGain ? '+' : ''}{fmt(hp)}

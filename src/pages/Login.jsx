@@ -20,7 +20,11 @@ export default function Login() {
       const res = await login(form);
       const { accessToken, refreshToken } = res.data.data || res.data;
       loginWithTokens(accessToken, refreshToken, { email: form.email });
-      navigate('/');
+      if (form.email === 'admin@gmail.com') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Check credentials.');
     } finally {

@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { FiX, FiAlertCircle } from 'react-icons/fi';
 import { buyStock, sellStock } from '../api/portfolioApi';
+import { getKycStatus } from '../api/kycApi';
+import { useNavigate } from 'react-router-dom';
 
 export default function BuySellModal({ stock, onClose, onSuccess }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState('BUY');
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -18,6 +21,21 @@ export default function BuySellModal({ stock, onClose, onSuccess }) {
     setError('');
     try {
       if (mode === 'BUY') {
+        try {
+          const kycRes = await getKycStatus();
+          if (kycRes.data?.data?.status !== 'approved') {
+            window.alert('KYC verification is not completed. Redirecting to KYC verification page.');
+            onClose();
+            navigate('/profile');
+            return;
+          }
+        } catch (e) {
+          window.alert('KYC verification is not completed. Redirecting to KYC verification page.');
+          onClose();
+          navigate('/profile');
+          return;
+        }
+
         await buyStock({
           searchId: stock.searchId || stock.search_id || stock.nseScriptCode?.toLowerCase() || stock.symbol?.toLowerCase(),
           quantity: Number(quantity),

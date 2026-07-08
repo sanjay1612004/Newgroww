@@ -102,7 +102,7 @@ export default function Register() {
                 id="register-name"
                 type="text"
                 required
-                placeholder="e.g. Vishal Kumar"
+                placeholder="e.g. sanjay balaji"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full bg-groww-surface border border-groww-border rounded-xl px-4 py-3.5 text-groww-text placeholder-groww-muted/60 focus:outline-none focus:border-groww-green focus:ring-1 focus:ring-groww-green transition-all duration-200 shadow-sm"

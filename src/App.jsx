@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -25,19 +27,31 @@ function Layout({ children }) {
 
 // Pages that need the navbar
 function WithNav({ Page }) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAdmin } = useAuth();
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
   return <Layout><Page /></Layout>;
+}
+
+// Admin-only route guard
+function AdminRoute({ Page }) {
+  const { isLoggedIn, isAdmin } = useAuth();
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
+  return <AdminLayout><Page /></AdminLayout>;
 }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* Auth pages — no navbar */}
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            {/* Auth pages — no navbar */}
           <Route path="/login"           element={<Login />} />
           <Route path="/register"        element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -49,7 +63,7 @@ export default function App() {
           <Route path="/portfolio"      element={<WithNav Page={Portfolio} />} />
           <Route path="/watchlist"      element={<WithNav Page={Watchlist} />} />
           <Route path="/profile"        element={<WithNav Page={Profile} />} />
-          <Route path="/admin"          element={<WithNav Page={AdminPanel} />} />
+          <Route path="/admin"          element={<AdminRoute Page={AdminPanel} />} />
 
           {/* 404 */}
           <Route path="*" element={
@@ -64,6 +78,7 @@ export default function App() {
           } />
         </Routes>
       </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

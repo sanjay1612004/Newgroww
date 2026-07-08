@@ -42,6 +42,15 @@ export default function StockDetail() {
     setError('');
     getStockDetails(searchId)
       .then((res) => {
+        const canonicalId = res.data?.header?.searchId || res.data?.search_id;
+        
+        // If we loaded using a symbol (e.g. 'ltm') but the actual ID is 'larsen-toubro-infotech-ltd',
+        // correct the URL in the browser so everything matches.
+        if (canonicalId && canonicalId !== searchId) {
+          navigate(`/stocks/${canonicalId}`, { replace: true });
+          return;
+        }
+
         setStock(res.data);
         const sym = res.data?.header?.nseScriptCode;
         if (sym) {
@@ -107,8 +116,16 @@ export default function StockDetail() {
         }, 1500);
       }
     } catch (e) {
-      setToast('Failed to verify KYC status.');
-      setTimeout(() => setToast(''), 3000);
+      if (e.response?.status === 404) {
+        setToast('Please complete your KYC to start trading.');
+        setTimeout(() => {
+          setToast('');
+          navigate('/profile');
+        }, 1500);
+      } else {
+        setToast('Failed to verify KYC status.');
+        setTimeout(() => setToast(''), 3000);
+      }
     } finally {
       setCheckingKyc(false);
     }
